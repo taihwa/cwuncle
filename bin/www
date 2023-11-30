@@ -1,0 +1,154 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+var fs = require('fs');
+var app = require('../app');
+var debug = require('debug')('mean-app:server');
+var http = require('http');
+var https = require('https');
+
+// Certificate
+var privateKey = fs.readFileSync('/etc/letsencrypt/live/bagcw.com/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('/etc/letsencrypt/live/bagcw.com/cert.pem', 'utf8');
+var ca = fs.readFileSync('/etc/letsencrypt/live/bagcw.com/chain.pem', 'utf8');
+
+var credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(app);
+
+var io = require('socket.io')(httpServer)
+
+httpServer.listen(3000, () => {
+	console.log('3000번 포트 스타트111');
+});
+
+io.sockets.on('connection', function (socket) {
+    console.log('client connect');
+    socket.on('echo', function (data) {
+        io.sockets.emit('message', data);
+    });
+});
+
+// Make io accessible to our router
+app.use(function(req,res,next){
+    req.io = io;
+    next();
+});
+
+
+/*
+require('greenlock-express').create({
+    version: 'v02', // draft-11 버전 인증서 사
+    configDir: '/etc/letsencrypt', // 또는 ~/letsencrypt/etc
+    server: 'https://acme-staging-v02.api.letsencrypt.org/directory',
+    approveDomains: (opts, certs, cb) => {
+      if (certs) {
+        opts.domains = ['bagcw.com', 'todo.bagcw.com', 'patner.bagcw.com'];
+      } else {
+        opts.email = 'dlxoghk1@naver.com';
+        opts.agreeTos = true;
+      }
+      cb(null, { options: opts, certs });
+    },
+    app: app,
+    renewWithin: 81 * 24 * 60 * 60 * 1000,
+    renewBy: 80 * 24 * 60 * 60 * 1000,
+  }).listen(80,443);
+
+  */
+
+/*  require('http').createServer(lex.middleware(require('redirect-https')())).listen(80, function () {
+  console.log("Listening for ACME http-01 challenges on", this.address());
+});
+
+require('https').createServer(lex.httpsOptions, lex.middleware(app)).listen(443, function () {
+  console.log("Listening for ACME tls-sni-01 challenges and serve app on", this.address());
+});
+*/
+/**
+ * Get port from environment and store in Express.
+ */
+
+//var port = normalizePort(process.env.PORT || '443');
+//app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+//var server = https.createServer(lex.httpsOptions, lex.middleware(app));
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+//server.listen(port);
+//server.on('error', onError);
+//server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

@@ -1,0 +1,9 @@
+{
+    "script": "app.js",
+    "watch": false,
+    "ignore_watch": ["node_modules", "dist2/uploads", "dist2/img", "dist/uploads", "dist/uploads", "download/*", "download/*/*"],
+    "watch_options": {
+        "followSymlinks": false
+    },
+    "name": "mevn-secure"
+}
